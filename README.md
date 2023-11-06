@@ -1,5 +1,50 @@
 # terraform-provider-mock
 
+This is a fork to demonstrate how to create a Private Terraform Provider Registry and deploy this mock provider to it.
+
+## infra/
+Create S3 bucket, CloudFront distribution, ACM certificate and Route53 DNS entries with Terraform.
+Run these commands within the `infra/` directory.
+```
+terraform init
+terraform apply
+```
+
+## dist/
+Buid a dist folder with Go Releaser.  
+Run these commands in the root directory of the repository.  
+```
+git tag -f v0.0.1
+gpg --gen-key
+gpg --armor --export --output key.txt "{Key ID or email address}"
+export GPG_FINGERPRINT="[pub fingerprint in ourput of 'gpg --gen-key']"
+goreleaser release --skip-publish
+```
+
+## tfpp/
+Package the `dist/` directory to be compatible with a Terraform Provider Registry.  
+Run these commands within the `tfpp/` directory.
+```
+go run main.go \
+  -ns=cjh-cloud \
+  -d=tfp.cjscloud.city \
+  -gf=$GPG_FINGERPRINT \
+  -v=0.0.1
+
+aws s3 sync release s3://tfp.cjscloud.city
+```
+
+## example/
+Consume the provider with Terraform.
+```
+terraform init
+terraform apply
+```
+
+
+
+## Original documentation:
+
 This is an empty boilerplate repository for creating a terraform provider. 
 
 The motivation for creating this repo was:
